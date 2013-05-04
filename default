@@ -1,0 +1,300 @@
+# You may add here your
+# server {
+#	...
+# }
+# statements for each of your virtual hosts
+
+#test server
+server {
+	listen 80;
+	server_name rails.ngkr.net;
+	location /welcome {
+		proxy_pass http://omni.ngkr.net/welcome/index;
+	}
+
+	location /blogs {
+		root /home/ngkr/www/rails;
+		proxy_pass http://unicorn.ngkr.net/blogs;
+	}
+
+	location / {
+		root /home/ngkr/www/rails;
+	}
+}
+
+#denki tabetai
+server {
+	listen 80;
+	server_name denkitabetai.ngkr.net;
+	location / {
+		root /home/ngkr/www/DenkiTabetai/assets/www;
+		index index.html index.htm;
+		#proxy_pass http://denkitabetai.ngkr.net;
+	}
+}
+
+
+upstream unicorn.ngkr.net{
+	server localhost:8080;
+}
+
+#omniauth-facebook rails program
+upstream omni.ngkr.net{
+	server localhost:3002;
+}
+
+
+#test setting port 3000
+upstream test.ngkr.net{
+	server localhost:3000;
+}
+
+upstream denki.ngkr.net{
+	server localhost:3005;
+}
+
+upstream node {
+	server localhost:8124;
+}
+
+
+#omniauth
+server {
+	listen 80;
+	server_name omni.ngkr.net;
+	
+	root /path/to/rails/root/public;
+	
+	try_files $uri $uri.html $uri/index.html @omni;
+
+	location ~* \.(html|ico|css|js|gif|jpe?g|png)(\?[0-9]+)?$ {
+		root public;
+		break;
+	}
+
+	location / {
+		if (-f $request_filename) {break;}
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $http_host;
+		#proxy_redirect off;
+		proxy_pass http://omni.ngkr.net;
+	}
+
+	location ~* ^/assets {
+		expires max;
+		add_header Cache-Control public;
+		break;
+	}
+}
+
+
+
+#unicorn setting
+server {
+	listen 80;
+	server_name unicorn.ngkr.net;
+	
+	root /home/ngkr/Documents/rails/twitauth/public;
+		
+
+	try_files $uri $uri.html $uri/index.html @unicorn;
+
+	location ~* \.(html|ico|css|js|gif|jpe?g|png)(\?[0-9]+)?$ {
+		#root public;
+		#break;
+		expires 1y;
+	}
+
+	location / {
+		if (-f $request_filename) {break;}
+		proxy_set_header X-Real-IP $remote_addr;
+		proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+		proxy_set_header Host $http_host;
+		#proxy_redirect off;
+		proxy_pass http://unicorn.ngkr.net;
+	}
+
+	  location ~* \.(ico|css|js|gif|jpe?g|png)(\?[0-9]+)?$ {
+		    expires 1y;
+		 }
+
+	location ~* ^/assets {
+		expires max;
+		add_header Cache-Control public;
+		break;
+	}
+}
+
+server {
+	listen 80;
+	server_name www3.ngkr.net;
+	root /var/www/node;
+	index index.html index.htm;
+}
+
+server {
+	listen 80;
+	server_name www2.ngkr.net;
+	location / {
+		root /home/ngkr/www;
+		break;
+	}
+	location /ainosu {
+		root /home/ngkr/www;
+		auth_basic            "Local Security Test";
+		auth_basic_user_file  "/home/ngkr/basic/ainosu.dat";
+		break;
+	}
+}
+
+#nodejs setting
+server {
+	listen 80;
+	server_name node.ngkr.net;
+	location / {
+		proxy_pass http://node;
+		break;
+	}
+}
+
+server {
+	listen 80;
+	server_name test.ngkr.net;
+	location / {
+		add_header Access-Control-Allow-Origin *;
+		proxy_pass http://test.ngkr.net;
+		break;
+	}
+	
+}
+
+#denki
+server {
+	listen 80;
+	server_name denki.ngkr.net;
+	location / {
+		add_header Access-Control-Allow-Origin *;
+		proxy_pass http://denki.ngkr.net;
+		break;
+	}
+	
+}
+
+
+##default setting##
+server {
+	listen 80;
+	server_name ngkr.net www.ngkr.net;
+	
+	location / {
+		root /home/ngkr/www;
+		add_header Access-Control-Allow-Origin *;
+		index index.html index.htm;
+		proxy_pass http://node;
+		break;
+	}
+	
+}
+
+
+
+
+#server {
+#	server_name ^~(?<domain>.+)\.ngkr\.net$;
+#	location ^~(?<pass>.+)$ {
+#		proxy_pass http://ngkr.net/$domain.ngkr.net$pass;
+#	}
+#}
+
+server {
+	listen 3001;
+	server_name  ngkr.net;
+
+	access_log  /var/log/nginx/localhost.access.log;
+
+	location / {
+		root /var/www/nginx-default;
+		index index.html index.htm;
+	}
+}
+
+#	location /doc {
+#		root   /usr/share;
+#		autoindex on;
+#		allow 127.0.0.1;
+#		deny all;
+#	}
+
+#	location /images {
+#		root   /usr/share;
+#		autoindex on;
+#	}
+
+	#error_page  404  /404.html;
+
+	# redirect server error pages to the static page /50x.html
+	#
+	#error_page   500 502 503 504  /50x.html;
+	#location = /50x.html {
+	#	root   /var/www/nginx-default;
+	#}
+
+	# proxy the PHP scripts to Apache listening on 127.0.0.1:80
+	#
+	#location ~ \.php$ {
+		#proxy_pass   http://127.0.0.1;
+	#}
+
+	# pass the PHP scripts to FastCGI server listening on 127.0.0.1:9000
+	#
+	#location ~ \.php$ {
+		#fastcgi_pass   127.0.0.1:9000;
+		#fastcgi_index  index.php;
+		#fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+		#includefastcgi_params;
+	#}
+
+	# deny access to .htaccess files, if Apache's document root
+	# concurs with nginx's one
+	#
+	#location ~ /\.ht {
+		#deny  all;
+	#}
+
+
+# another virtual host using mix of IP-, name-, and port-based configuration
+#
+#server {
+#listen   8000;
+#listen   somename:8080;
+#server_name  somename  alias  another.alias;
+
+#location / {
+#root   html;
+#index  index.html index.htm;
+#}
+#}
+
+
+# HTTPS server
+#
+#server {
+#listen   443;
+#server_name  localhost;
+
+#ssl  on;
+#ssl_certificate  cert.pem;
+#ssl_certificate_key  cert.key;
+
+#ssl_session_timeout  5m;
+
+#ssl_protocols  SSLv2 SSLv3 TLSv1;
+#ssl_ciphers  ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP;
+#ssl_prefer_server_ciphers   on;
+
+#location / {
+#root   html;
+#index  index.html index.htm;
+#}
+#}
